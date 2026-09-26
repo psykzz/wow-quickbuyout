@@ -18,7 +18,11 @@ Quick Buyout only targets the modern Auction House UI (`Blizzard_AuctionHouseUI`
 
 ## Stale results
 
-The item search results are not refreshed immediately after a purchase. Always skip auction IDs recorded in `boughtAuctionIDs` (populated from `AUCTION_HOUSE_PURCHASE_COMPLETED`) when picking the cheapest auction.
+The item search results are not refreshed immediately after a purchase. Always skip auction IDs recorded in `boughtAuctionIDs` (populated from `AUCTION_HOUSE_PURCHASE_COMPLETED`) when validating the selection or picking the cheapest auction.
+
+## Selection behaviour
+
+Buyout purchases the auction the user has selected. `SelectCheapest(force)` only overrides the selection when forced (new item group via `SetItemKey`, or after a purchase completes) or when the current selection is no longer buyable. Do not force it from `ITEM_SEARCH_RESULTS_*` events, or it will undo manual selections.
 
 ## Reference source
 

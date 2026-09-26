@@ -2,13 +2,13 @@
 
 # wow-quickbuyout
 
-A World of Warcraft addon that removes the Auction House buyout confirmation popup for gear. Clicking **Buyout** immediately purchases the cheapest armor or weapon auction in the group you are viewing, similar to TradeSkillMaster's quick buy.
+A World of Warcraft addon that removes the Auction House buyout confirmation popup for gear. Clicking **Buyout** immediately purchases the selected armor or weapon auction, similar to TradeSkillMaster's quick buy. The cheapest auction is selected for you by default.
 
 ## Features
 
 - **One-click buyout** - no confirmation popup for armor and weapon auctions.
-- **Always buys the cheapest** - the cheapest buyout in the current item group is purchased, skipping your own auctions and bid-only listings.
-- **Auto-selects the cheapest row** - the Buyout button is ready to click and shows the price you will pay; after each purchase the next cheapest is selected, so you can click repeatedly.
+- **Buys what you selected** - pick any auction in the list and Buyout purchases exactly that one.
+- **Cheapest selected by default** - when you open an item group, and after each purchase, the cheapest buyable auction (skipping your own and bid-only listings) is selected, so you can click Buyout repeatedly.
 - **Double-purchase guard** - extra clicks are ignored while a purchase is in flight, and auctions already bought are never retried while the result list catches up.
 - **Everything else unchanged** - commodities, non-gear items, bids, and Blizzard's unique-crafted-item warning keep their normal confirmations.
 
@@ -29,8 +29,8 @@ Install via CurseForge, Wago, or manually by downloading the latest release from
 ## Usage
 
 1. Open the Auction House and search for an armor or weapon item.
-2. Click the item group to see its auctions.
-3. Click **Buyout**. The cheapest auction is bought instantly.
+2. Click the item group to see its auctions. The cheapest is selected automatically; click another row to pick a different one.
+3. Click **Buyout**. The selected auction is bought instantly, and the selection resets to the cheapest.
 
 There are no settings or slash commands.
 

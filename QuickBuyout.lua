@@ -1,4 +1,5 @@
 local PENDING_TIMEOUT = 5
+local NO_AUCTION_SELECTED_ERROR = "Quick Buyout: select an auction first."
 
 local GetItemInfoInstant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
 
@@ -23,27 +24,41 @@ local function IsOwned(info)
 	return info.containsOwnerItem
 end
 
-local function FindCheapest(itemKey)
-	local cheapest
-	for i = 1, C_AuctionHouse.GetNumItemSearchResults(itemKey) do
-		local info = C_AuctionHouse.GetItemSearchResultInfo(itemKey, i)
-		if info and info.buyoutAmount and info.buyoutAmount > 0
-			and not boughtAuctionIDs[info.auctionID] and not IsOwned(info)
-			and (not cheapest or info.buyoutAmount < cheapest.buyoutAmount) then
-			cheapest = info
-		end
-	end
-	return cheapest
+local function IsBuyable(info)
+	return info and info.buyoutAmount and info.buyoutAmount > 0
+		and not boughtAuctionIDs[info.auctionID] and not IsOwned(info)
 end
 
-local function SelectCheapest()
+-- Returns the cheapest buyable auction, plus the fresh result for wantedAuctionID if it is still buyable.
+local function ScanResults(itemKey, wantedAuctionID)
+	local cheapest, wanted
+	for i = 1, C_AuctionHouse.GetNumItemSearchResults(itemKey) do
+		local info = C_AuctionHouse.GetItemSearchResultInfo(itemKey, i)
+		if IsBuyable(info) then
+			if not cheapest or info.buyoutAmount < cheapest.buyoutAmount then
+				cheapest = info
+			end
+			if info.auctionID == wantedAuctionID then
+				wanted = info
+			end
+		end
+	end
+	return cheapest, wanted
+end
+
+-- Selects the cheapest auction. Unless forced, a still-buyable selection is left alone.
+local function SelectCheapest(force)
 	local itemKey = itemBuyFrame.itemKey
 	if not itemBuyFrame:IsShown() or not IsGear(itemKey) then
 		return
 	end
 
-	local cheapest = FindCheapest(itemKey)
 	local selected = itemBuyFrame.ItemList:GetSelectedEntry()
+	local cheapest, current = ScanResults(itemKey, selected and selected.auctionID)
+	if current and not force then
+		return
+	end
+
 	if cheapest then
 		if not selected or selected.auctionID ~= cheapest.auctionID then
 			-- Select without scrolling: the ScrollBox may not have its data provider yet.
@@ -69,25 +84,27 @@ local function QuickBuy()
 		return
 	end
 
-	local cheapest = FindCheapest(itemKey)
-	if not cheapest then
-		UIErrorsFrame:AddExternalErrorMessage(BROWSE_NO_RESULTS)
+	local selected = itemBuyFrame.ItemList:GetSelectedEntry()
+	local _, target = ScanResults(itemKey, selected and selected.auctionID)
+	if not target then
+		UIErrorsFrame:AddExternalErrorMessage(NO_AUCTION_SELECTED_ERROR)
+		SelectCheapest(true)
 		return
 	end
 
-	if cheapest.buyoutAmount > GetMoney() then
+	if target.buyoutAmount > GetMoney() then
 		UIErrorsFrame:AddExternalErrorMessage(AUCTION_HOUSE_TOOLTIP_TITLE_NOT_ENOUGH_MONEY)
 		return
 	end
 
 	-- Keep Blizzard's warning for unique crafted items (retail only).
 	if AuctionHouseUtil.IsAuctionIDUniqueShadowlandsCrafted
-		and AuctionHouseUtil.IsAuctionIDUniqueShadowlandsCrafted(cheapest.auctionID) then
-		itemBuyFrame:GetAuctionHouseFrame():StartItemBuyout(cheapest.auctionID, cheapest.buyoutAmount)
+		and AuctionHouseUtil.IsAuctionIDUniqueShadowlandsCrafted(target.auctionID) then
+		itemBuyFrame:GetAuctionHouseFrame():StartItemBuyout(target.auctionID, target.buyoutAmount)
 		return
 	end
 
-	pendingAuctionID = cheapest.auctionID
+	pendingAuctionID = target.auctionID
 	pendingToken = pendingToken + 1
 	local token = pendingToken
 	C_Timer.After(PENDING_TIMEOUT, function()
@@ -97,7 +114,7 @@ local function QuickBuy()
 	end)
 
 	-- Runs inside the Buyout button's OnClick, which supplies the required hardware event.
-	C_AuctionHouse.PlaceBid(cheapest.auctionID, cheapest.buyoutAmount)
+	C_AuctionHouse.PlaceBid(target.auctionID, target.buyoutAmount)
 end
 
 local function Setup()
@@ -110,10 +127,12 @@ local function Setup()
 
 	itemBuyFrame:HookScript("OnEvent", function(_, event)
 		if event == "ITEM_SEARCH_RESULTS_UPDATED" or event == "ITEM_SEARCH_RESULTS_ADDED" then
-			SelectCheapest()
+			SelectCheapest(false)
 		end
 	end)
-	hooksecurefunc(itemBuyFrame, "SetItemKey", SelectCheapest)
+	hooksecurefunc(itemBuyFrame, "SetItemKey", function()
+		SelectCheapest(true)
+	end)
 end
 
 local events = CreateFrame("Frame")
@@ -132,7 +151,7 @@ events:SetScript("OnEvent", function(_, event, arg1)
 			ClearPending()
 		end
 		if itemBuyFrame then
-			SelectCheapest()
+			SelectCheapest(true)
 		end
 	elseif event == "AUCTION_HOUSE_SHOW_ERROR" then
 		ClearPending()
