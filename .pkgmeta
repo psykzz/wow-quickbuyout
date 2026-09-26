@@ -1,0 +1,10 @@
+package-as: QuickBuyout
+
+enable-nolib-creation: no
+
+ignore:
+  - README.md
+  - AGENTS.md
+  - media
+  - .github
+  - .gitignore
