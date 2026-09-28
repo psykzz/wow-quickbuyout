@@ -2,15 +2,16 @@
 
 # wow-quickbuyout
 
-A World of Warcraft addon that removes the Auction House buyout confirmation popup for gear. Clicking **Buyout** immediately purchases the selected armor or weapon auction, similar to TradeSkillMaster's quick buy. The cheapest auction is selected for you by default.
+A World of Warcraft addon that removes the Auction House buyout confirmation popup for enabled item categories. Clicking **Buyout** immediately purchases the selected auction, similar to TradeSkillMaster's quick buy. The cheapest auction is selected for you by default.
 
 ## Features
 
-- **One-click buyout** - no confirmation popup for armor and weapon auctions.
+- **One-click buyout** - no confirmation popup for enabled item categories; armor and weapons are enabled by default.
+- **Category settings** - enable or disable individual item classes in **Options > AddOns > Quick Buyout**. Other item categories are opt-in.
 - **Buys what you selected** - pick any auction in the list and Buyout purchases exactly that one.
 - **Cheapest selected by default** - when you open an item group, and after each purchase, the cheapest buyable auction (skipping your own and bid-only listings) is selected, so you can click Buyout repeatedly.
 - **Double-purchase guard** - extra clicks are ignored while a purchase is in flight, and auctions already bought are never retried while the result list catches up.
-- **Everything else unchanged** - commodities, non-gear items, bids, and Blizzard's unique-crafted-item warning keep their normal confirmations.
+- **Everything else unchanged** - commodities, disabled item categories, bids, and Blizzard's unique-crafted-item warning keep their normal confirmations.
 
 ## Compatibility
 
@@ -28,13 +29,15 @@ Install via CurseForge, Wago, or manually by downloading the latest release from
 
 ## Usage
 
-1. Open the Auction House and search for an armor or weapon item.
+1. Open the Auction House and search for an item in an enabled category (armor or weapons by default).
 2. Click the item group to see its auctions. The cheapest is selected automatically; click another row to pick a different one.
 3. Click **Buyout**. The selected auction is bought instantly, and the selection resets to the cheapest.
 
-There are no settings or slash commands.
+To change which items use quick buyout, open **Options > AddOns > Quick Buyout** and toggle the desired categories. There are no slash commands.
 
 ## Development
+
+Run the Lua behavior tests with `python -m pip install -r requirements-test.txt` and `python -m unittest discover -s tests`.
 
 ### Creating a Release
 

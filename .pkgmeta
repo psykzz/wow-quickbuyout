@@ -8,3 +8,5 @@ ignore:
   - media
   - .github
   - .gitignore
+  - tests
+  - requirements-test.txt
