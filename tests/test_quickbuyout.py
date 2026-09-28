@@ -7,14 +7,18 @@ from lupa import LuaRuntime
 SOURCE = (Path(__file__).resolve().parents[1] / "QuickBuyout.lua").read_text()
 
 WOW_API = """
-Enum = {ItemClass = {Weapon=2, Armor=4, Consumable=0, Miscellaneous=15}}
-local names = {[2]="Weapons", [4]="Armor", [0]="Consumables", [15]="Miscellaneous"}
-local items = {[101]=2, [102]=0, [103]=15}
+Enum = {ItemClass = {Weapon=2, Armor=4, Consumable=0, Gem=3,
+    ItemEnhancement=8, CurrencyTokenObsolete=10, PermanentObsolete=14,
+    Miscellaneous=15}}
+local names = {[2]="Weapons", [4]="Armor", [0]="Consumables",
+    [3]="Generic(OBSOLETE)", [8]="Jewelry(OBSOLETE)",
+    [10]="Money(OBSOLETE)", [14]="Permanent(OBSOLETE)", [15]="Miscellaneous"}
+local items = {[101]=2, [102]=0, [103]=15, [104]=3, [105]=10}
 C_Item = {
     GetItemInfoInstant = function(id) return id, "", "", "", "", items[id] end,
     GetItemClassInfo = function(id) return names[id] end,
 }
-QuickBuyoutDB = {["15"]=true}
+QuickBuyoutDB = {["15"]=true, ["3"]=true, ["10"]=true}
 Settings = {VarType={Boolean="boolean"}, settings={}}
 function Settings.RegisterVerticalLayoutCategory(name) return name end
 function Settings.RegisterAddOnSetting(category, id, key, db, kind, name, default)
@@ -72,6 +76,10 @@ class QuickBuyoutTests(unittest.TestCase):
             assert(Settings.category == "Quick Buyout")
             assert(Settings.settings.QUICKBUYOUT_CLASS_2 and Settings.settings.QUICKBUYOUT_CLASS_4)
             assert(Settings.settings.QUICKBUYOUT_CLASS_0 and Settings.settings.QUICKBUYOUT_CLASS_15)
+            assert(not Settings.settings.QUICKBUYOUT_CLASS_3)
+            assert(not Settings.settings.QUICKBUYOUT_CLASS_8)
+            assert(not Settings.settings.QUICKBUYOUT_CLASS_10)
+            assert(not Settings.settings.QUICKBUYOUT_CLASS_14)
             assert(QuickBuyoutDB["2"] and QuickBuyoutDB["4"])
             assert(QuickBuyoutDB["0"] == false and QuickBuyoutDB["15"])
         """)
@@ -113,6 +121,14 @@ class QuickBuyoutTests(unittest.TestCase):
             frame.itemKey = {itemID=101}
             frame.BuyoutFrame.click()
             assert(frame.blizzardBuys == 3)
+            for _, itemID in ipairs({104, 105}) do
+                frame.itemKey = {itemID=itemID}
+                frame.ItemList.selected = nil
+                frame.onItemKey()
+                assert(frame.ItemList.selected == nil)
+                frame.BuyoutFrame.click()
+            end
+            assert(frame.blizzardBuys == 5)
         """)
 
 

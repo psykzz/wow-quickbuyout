@@ -7,7 +7,7 @@ A World of Warcraft addon that removes the Auction House buyout confirmation pop
 ## Features
 
 - **One-click buyout** - no confirmation popup for enabled item categories; armor and weapons are enabled by default.
-- **Category settings** - enable or disable individual item classes in **Options > AddOns > Quick Buyout**. Other item categories are opt-in.
+- **Category settings** - enable or disable individual item classes in **Options > AddOns > Quick Buyout**. Other item categories are opt-in; obsolete classes are hidden.
 - **Buys what you selected** - pick any auction in the list and Buyout purchases exactly that one.
 - **Cheapest selected by default** - when you open an item group, and after each purchase, the cheapest buyable auction (skipping your own and bid-only listings) is selected, so you can click Buyout repeatedly.
 - **Double-purchase guard** - extra clicks are ignored while a purchase is in flight, and auctions already bought are never retried while the result list catches up.

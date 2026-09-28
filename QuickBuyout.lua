@@ -12,12 +12,18 @@ local pendingToken = 0
 -- Auctions we already bought; the result list can lag behind the server.
 local boughtAuctionIDs = {}
 
+local function IsObsoleteClass(classID, name)
+	return classID == Enum.ItemClass.CurrencyTokenObsolete
+		or classID == Enum.ItemClass.PermanentObsolete
+		or (name and name:upper():find("OBSOLETE", 1, true) ~= nil)
+end
+
 local function IsEnabled(itemKey)
 	if not itemKey or not itemKey.itemID then
 		return false
 	end
 	local classID = select(6, GetItemInfoInstant(itemKey.itemID))
-	if not classID then
+	if not classID or IsObsoleteClass(classID, GetItemClassInfo(classID)) then
 		return false
 	end
 	local enabled = QuickBuyoutDB[tostring(classID)]
@@ -153,7 +159,7 @@ local function RegisterSettings()
 		if type(classID) == "number" and not seen[classID] then
 			seen[classID] = true
 			local name = GetItemClassInfo(classID)
-			if name then
+			if name and not IsObsoleteClass(classID, name) then
 				classes[#classes + 1] = { id = classID, name = name }
 			end
 		end
