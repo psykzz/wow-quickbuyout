@@ -2,6 +2,9 @@ local PENDING_TIMEOUT = 5
 local NO_AUCTION_SELECTED_ERROR = "Quick Buyout: select an auction first."
 
 local GetItemInfoInstant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+local GetItemClassInfo = (C_Item and C_Item.GetItemClassInfo) or GetItemClassInfo
+
+QuickBuyoutDB = QuickBuyoutDB or {}
 
 local itemBuyFrame
 local pendingAuctionID
@@ -9,12 +12,25 @@ local pendingToken = 0
 -- Auctions we already bought; the result list can lag behind the server.
 local boughtAuctionIDs = {}
 
-local function IsGear(itemKey)
+local function IsObsoleteClass(classID, name)
+	return classID == Enum.ItemClass.CurrencyTokenObsolete
+		or classID == Enum.ItemClass.PermanentObsolete
+		or (name and name:upper():find("OBSOLETE", 1, true) ~= nil)
+end
+
+local function IsEnabled(itemKey)
 	if not itemKey or not itemKey.itemID then
 		return false
 	end
 	local classID = select(6, GetItemInfoInstant(itemKey.itemID))
-	return classID == Enum.ItemClass.Weapon or classID == Enum.ItemClass.Armor
+	if not classID or IsObsoleteClass(classID, GetItemClassInfo(classID)) then
+		return false
+	end
+	local enabled = QuickBuyoutDB[tostring(classID)]
+	if enabled == nil then
+		return classID == Enum.ItemClass.Weapon or classID == Enum.ItemClass.Armor
+	end
+	return enabled
 end
 
 local function IsOwned(info)
@@ -49,7 +65,7 @@ end
 -- Selects the cheapest auction. Unless forced, a still-buyable selection is left alone.
 local function SelectCheapest(force)
 	local itemKey = itemBuyFrame.itemKey
-	if not itemBuyFrame:IsShown() or not IsGear(itemKey) then
+	if not itemBuyFrame:IsShown() or not IsEnabled(itemKey) then
 		return
 	end
 
@@ -75,7 +91,7 @@ end
 
 local function QuickBuy()
 	local itemKey = itemBuyFrame.itemKey
-	if not IsGear(itemKey) then
+	if not IsEnabled(itemKey) then
 		itemBuyFrame:BuyoutItem()
 		return
 	end
@@ -134,6 +150,36 @@ local function Setup()
 		SelectCheapest(true)
 	end)
 end
+
+local function RegisterSettings()
+	local category = Settings.RegisterVerticalLayoutCategory("Quick Buyout")
+	local classes = {}
+	local seen = {}
+	for _, classID in pairs(Enum.ItemClass) do
+		if type(classID) == "number" and not seen[classID] then
+			seen[classID] = true
+			local name = GetItemClassInfo(classID)
+			if name and not IsObsoleteClass(classID, name) then
+				classes[#classes + 1] = { id = classID, name = name }
+			end
+		end
+	end
+	table.sort(classes, function(a, b)
+		return a.name < b.name
+	end)
+
+	for _, class in ipairs(classes) do
+		local default = class.id == Enum.ItemClass.Weapon or class.id == Enum.ItemClass.Armor
+		local setting = Settings.RegisterAddOnSetting(
+			category, "QUICKBUYOUT_CLASS_" .. class.id, tostring(class.id), QuickBuyoutDB,
+			Settings.VarType.Boolean, class.name, default
+		)
+		Settings.CreateCheckbox(category, setting, "Buy auctions in this category without confirmation.")
+	end
+	Settings.RegisterAddOnCategory(category)
+end
+
+RegisterSettings()
 
 local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")

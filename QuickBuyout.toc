@@ -1,11 +1,12 @@
 ## Interface: 16001, 50504, 120100
 ## Title: Quick Buyout
-## Notes: Buyout skips the confirmation popup for armor/weapons and buys the selected auction.
+## Notes: One-click buyout for selected item categories, with cheapest-auction selection.
 ## Author: PsyKzz
 ## Version: @project-version@
 ## X-Curse-Project-ID: 1713624
 ## X-Category: Auction & Economy
 ## Category-enUS: Auction & Economy
 ## IconTexture: Interface\Icons\INV_Misc_Coin_01
+## SavedVariables: QuickBuyoutDB
 
 QuickBuyout.lua
