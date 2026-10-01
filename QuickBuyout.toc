@@ -5,7 +5,8 @@
 ## Version: @project-version@
 ## X-Curse-Project-ID: 1713624
 ## X-Category: Auction & Economy
-## Category-enUS: Auction & Economy
+## Category: Auctions
+## Category-enUS: Auctions
 ## IconTexture: Interface\Icons\INV_Misc_Coin_01
 ## SavedVariables: QuickBuyoutDB
 
